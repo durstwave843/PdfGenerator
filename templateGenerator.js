@@ -12,9 +12,65 @@ function generateUUID() {
 }
 
 /**
+ * Get a field value using multiple possible field names
+ * This helps handle the various ways JotForm might send field data
+ */
+function getFieldValue(data, fieldOptions, defaultValue = '') {
+  for (const field of fieldOptions) {
+    if (data[field] !== undefined && data[field] !== null && data[field] !== '') {
+      return data[field];
+    }
+  }
+  return defaultValue;
+}
+
+/**
+ * Generate HTML template with the form data
+ */
+/**
  * Generate HTML template with the form data
  */
 function generateTemplate(data) {
+  // Log all available fields for debugging
+  console.log('Template generator received data with fields:', Object.keys(data));
+  
+  // Get various field values with multiple possible field names
+  const projectManager = getFieldValue(
+    data, 
+    ['projectManager', '{projectManager}', 'q135_projectManager', 'Project Manager', 'PM Name'],
+    'Project Manager'
+  );
+  
+  const pmEmail = getFieldValue(
+    data,
+    ['pmEmail', '{pmEmail}', 'PM Email', 'Project Manager Email'],
+    ''
+  );
+  
+  const homeownerName = getFieldValue(
+    data,
+    ['Homeowner Name', 'homeownerName', 'homeowner'],
+    'Homeowner'
+  );
+  
+  const homeownerPhone = getFieldValue(
+    data,
+    ['Homeowner Phone Number', 'homeownerPhoneNumber', 'phone'],
+    ''
+  );
+  
+  const homeownerEmail = getFieldValue(
+    data,
+    ['Homeowner Email (PLEASE INCLUDE THIS)', 'homeownerEmail', 'email'],
+    ''
+  );
+  
+  const projectAddress = getFieldValue(
+    data,
+    ['Project Address', 'projectAddress', 'address'],
+    ''
+  );
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -190,20 +246,20 @@ function generateTemplate(data) {
                 ${new Date().toLocaleDateString()}
             </h1>
             <h2 style="font-size: 25px; color: white; text-align: center; ">Turn in</h2>
-            <h3 style="font-size: 20px; color: white; padding-left: 5px; font-weight: 800; position: relative; top: -40px; padding-left: 20px;">${data['projectManager'] || ''}</h3>
-            <h4 style="font-size: 12px; color: white; position: relative; top: -60px; padding-left: 20px;">${data['PM Email'] || ''}</h4>
+            <h3 style="font-size: 20px; color: white; padding-left: 5px; font-weight: 800; position: relative; top: -40px; padding-left: 20px;">${projectManager}</h3>
+            <h4 style="font-size: 12px; color: white; position: relative; top: -60px; padding-left: 20px;">${pmEmail}</h4>
         </div>
         
-        <span style="border: 4px solid black; background-color: #4a4a4a !important; display: inline-block; width: 33.3333%; text-align: center; border-top: 0px; border-bottom-left-radius: 8px; border-right: 0px; color: white; padding: 5px 0;">Homeowner Contact:</span><span style="border: 4px solid black; border-left: 0cap; border-top: 0px; display: inline-block; padding-right: 115px; padding-left: 40px; border-bottom: 0px; width: calc(66.6667% - 159px);">${data['Homeowner Name'] || 'Homeowner'}</span>
+        <span style="border: 4px solid black; background-color: #4a4a4a !important; display: inline-block; width: 33.3333%; text-align: center; border-top: 0px; border-bottom-left-radius: 8px; border-right: 0px; color: white; padding: 5px 0;">Homeowner Contact:</span><span style="border: 4px solid black; border-left: 0cap; border-top: 0px; display: inline-block; padding-right: 115px; padding-left: 40px; border-bottom: 0px; width: calc(66.6667% - 159px);">${homeownerName}</span>
         
-        ${data['Homeowner Phone Number'] ? 
-          `<div style="text-align: center; border: 4px solid black; border-top: 0; padding: 5px; font-weight: bold;">Phone Number: ${data['Homeowner Phone Number']}</div>` : ''}
+        ${homeownerPhone ? 
+          `<div style="text-align: center; border: 4px solid black; border-top: 0; padding: 5px; font-weight: bold;">Phone Number: ${homeownerPhone}</div>` : ''}
         
-        ${data['Homeowner Email (PLEASE INCLUDE THIS)'] ? 
-          `<div style="text-align: center; border: 4px solid black; border-top: 0; padding: 5px; font-weight: bold;">Email: ${data['Homeowner Email (PLEASE INCLUDE THIS)']}</div>` : ''}
+        ${homeownerEmail ? 
+          `<div style="text-align: center; border: 4px solid black; border-top: 0; padding: 5px; font-weight: bold;">Email: ${homeownerEmail}</div>` : ''}
         
-        ${data['Project Address'] ? 
-          `<div style="text-align: center; border: 4px solid black; border-top: 0; padding: 5px; font-weight: bold;">Address: ${data['Project Address']}</div>` : ''}
+        ${projectAddress ? 
+          `<div style="text-align: center; border: 4px solid black; border-top: 0; padding: 5px; font-weight: bold;">Address: ${projectAddress}</div>` : ''}
         
         <!-- Roofing Details Section -->
         <div style="background-color: #062841 !important; color: white !important; padding: 10px !important; margin-top: 20px !important; border-radius: 5px !important;">
@@ -212,40 +268,40 @@ function generateTemplate(data) {
         
         <div class="projectDetails">
             <div class="detailsGrid">
-                ${data['What brand of shingle?'] ? 
+                ${getFieldValue(data, ['What brand of shingle?', 'brandOfShingle'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Brand of Shingle:</div>
-                      <div class="detailsValue">${data['What brand of shingle?']}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['What brand of shingle?', 'brandOfShingle'], '')}</div>
                   </div>` : ''}
                 
-                ${data['What type of shingle?'] ? 
+                ${getFieldValue(data, ['What type of shingle?', 'typeOfShingle'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Type of Shingle:</div>
-                      <div class="detailsValue">${data['What type of shingle?']}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['What type of shingle?', 'typeOfShingle'], '')}</div>
                   </div>` : ''}
                 
-                ${data['What color (must be actual color)'] ? 
+                ${getFieldValue(data, ['What color (must be actual color)', 'shingleColor'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Shingle Color:</div>
-                      <div class="detailsValue">${data['What color (must be actual color)']}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['What color (must be actual color)', 'shingleColor'], '')}</div>
                   </div>` : ''}
                 
-                ${data['Drip edge color (circle)'] ? 
+                ${getFieldValue(data, ['Drip edge color (circle)', 'dripEdgeColor'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Drip Edge Color:</div>
-                      <div class="detailsValue">${data['Drip edge color (circle)']}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['Drip edge color (circle)', 'dripEdgeColor'], '')}</div>
                   </div>` : ''}
                 
-                ${data['Ridge Type (circle)'] ? 
+                ${getFieldValue(data, ['Ridge Type (circle)', 'ridgeType'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Ridge Type:</div>
-                      <div class="detailsValue">${data['Ridge Type (circle)']}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['Ridge Type (circle)', 'ridgeType'], '')}</div>
                   </div>` : ''}
                 
-                ${data['What roof materials are we replacing?'] ? 
+                ${getFieldValue(data, ['What roof materials are we replacing?', 'roofMaterials'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Roof Materials to Replace:</div>
-                      <div class="detailsValue">${data['What roof materials are we replacing?']}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['What roof materials are we replacing?', 'roofMaterials'], '')}</div>
                   </div>` : ''}
             </div>
         </div>
@@ -266,40 +322,41 @@ function generateTemplate(data) {
                 </tr>
                 <tr>
                     <td>House</td>
-                    <td>${data['Structures to be worked on >> House >> Roof'] ? '✓' : '—'}</td>
-                    <td>${data['Structures to be worked on >> House >> Gutters'] ? '✓' : '—'}</td>
-                    <td>${data['Structures to be worked on >> House >> Windows'] ? '✓' : '—'}</td>
-                    <td>${data['Structures to be worked on >> House >> Paint'] ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Roof', 'houseRoof'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Gutters', 'houseGutters'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Windows', 'houseWindows'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Paint', 'housePaint'], false) ? '✓' : '—'}</td>
                 </tr>
                 <tr>
                     <td>Shed</td>
-                    <td>${data['Structures to be worked on >> Shed >> Roof'] ? '✓' : '—'}</td>
-                    <td>${data['Structures to be worked on >> Shed >> Gutters'] ? '✓' : '—'}</td>
-                    <td>${data['Structures to be worked on >> Shed >> Windows'] ? '✓' : '—'}</td>
-                    <td>${data['Structures to be worked on >> Shed >> Paint'] ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Roof', 'shedRoof'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Gutters', 'shedGutters'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Windows', 'shedWindows'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Paint', 'shedPaint'], false) ? '✓' : '—'}</td>
                 </tr>
                 <tr>
                     <td>Garage</td>
-                    <td>${data['Structures to be worked on >> Garage >> Roof'] ? '✓' : '—'}</td>
-                    <td>${data['Structures to be worked on >> Garage >> Gutters'] ? '✓' : '—'}</td>
-                    <td>${data['Structures to be worked on >> Garage >> Windows'] ? '✓' : '—'}</td>
-                    <td>${data['Structures to be worked on >> Garage >> Paint'] ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Roof', 'garageRoof'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Gutters', 'garageGutters'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Windows', 'garageWindows'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Paint', 'garagePaint'], false) ? '✓' : '—'}</td>
                 </tr>
             </table>
         </div>
         
         <!-- Notes Section -->
-        ${(data['Special instructions/notes/side deals'] || data['Put any other important build notes here']) ? 
+        ${(getFieldValue(data, ['Special instructions/notes/side deals', 'specialInstructions'], '') || 
+           getFieldValue(data, ['Put any other important build notes here', 'buildNotes'], '')) ? 
           `<div style="background-color: #062841 !important; color: white !important; padding: 10px !important; margin-top: 20px !important; border-radius: 5px !important;">
               <h3 style="margin: 0; color: white !important;">Special Instructions & Notes</h3>
           </div>
           
           <div class="notes">
-              ${data['Special instructions/notes/side deals'] ? 
-                `<p><strong>Special Instructions:</strong><br>${data['Special instructions/notes/side deals']}</p>` : ''}
+              ${getFieldValue(data, ['Special instructions/notes/side deals', 'specialInstructions'], '') ? 
+                `<p><strong>Special Instructions:</strong><br>${getFieldValue(data, ['Special instructions/notes/side deals', 'specialInstructions'], '')}</p>` : ''}
               
-              ${data['Put any other important build notes here'] ? 
-                `<p><strong>Additional Build Notes:</strong><br>${data['Put any other important build notes here']}</p>` : ''}
+              ${getFieldValue(data, ['Put any other important build notes here', 'buildNotes'], '') ? 
+                `<p><strong>Additional Build Notes:</strong><br>${getFieldValue(data, ['Put any other important build notes here', 'buildNotes'], '')}</p>` : ''}
           </div>` : ''}
         
         <!-- Status and Certification -->
@@ -308,9 +365,9 @@ function generateTemplate(data) {
         </div>
         
         <div class="projectDetails">
-            ${data['Status'] ? 
+            ${getFieldValue(data, ['Status', 'status'], '') ? 
               `<div style="margin-bottom: 15px;">
-                  <strong>Current Status:</strong> ${data['Status']}
+                  <strong>Current Status:</strong> ${getFieldValue(data, ['Status', 'status'], '')}
               </div>` : ''}
         </div>
         
@@ -333,6 +390,3 @@ function generateTemplate(data) {
     </div>
 </body>
 </html>`;
-}
-
-module.exports = { generateTemplate };
