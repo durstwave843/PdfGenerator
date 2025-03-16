@@ -27,9 +27,6 @@ function getFieldValue(data, fieldOptions, defaultValue = '') {
 /**
  * Generate HTML template with the form data
  */
-/**
- * Generate HTML template with the form data
- */
 function generateTemplate(data) {
   // Log all available fields for debugging
   console.log('Template generator received data with fields:', Object.keys(data));
@@ -390,3 +387,6 @@ function generateTemplate(data) {
     </div>
 </body>
 </html>`;
+}
+
+module.exports = { generateTemplate, getFieldValue };
