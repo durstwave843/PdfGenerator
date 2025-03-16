@@ -58,9 +58,9 @@ app.post('/webhook', async (req, res) => {
     // Save PDF to disk
     fs.writeFileSync(filePath, pdfBuffer);
     
-    // Generate public URL
-    const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
-    const pdfUrl = `${baseUrl}/uploads/${fileName}`;
+  // Generate public URL - fix the URL construction
+  const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+  const pdfUrl = `${baseUrl}/uploads/${fileName}`; // Remove any "/webhook" prefix
     
     console.log(`PDF generated and saved at: ${pdfUrl}`);
     
@@ -187,6 +187,58 @@ app.get('/', (req, res) => {
       </body>
     </html>
   `);
+});
+
+// Add a route to list all generated PDFs
+app.get('/pdfs', (req, res) => {
+  fs.readdir(uploadsDir, (err, files) => {
+    if (err) {
+      return res.status(500).send('Error reading uploads directory');
+    }
+    
+    const pdfFiles = files.filter(file => file.endsWith('.pdf'));
+    const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+    
+    let html = `
+      <html>
+        <head>
+          <title>Generated PDFs</title>
+          <style>
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+            h1 { color: #062841; }
+            ul { list-style-type: none; padding: 0; }
+            li { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+            a { color: #0366d6; text-decoration: none; }
+            a:hover { text-decoration: underline; }
+          </style>
+        </head>
+        <body>
+          <h1>Generated PDFs</h1>
+    `;
+    
+    if (pdfFiles.length === 0) {
+      html += '<p>No PDFs generated yet</p>';
+    } else {
+      html += '<ul>';
+      pdfFiles.forEach(file => {
+        const fileUrl = `${baseUrl}/uploads/${file}`;
+        const fileName = file.replace('Gates_TurnIn_', '').replace(/_.+\.pdf$/, '');
+        const date = new Date(parseInt(file.split('_').pop().replace('.pdf', ''))).toLocaleString();
+        
+        html += `
+          <li>
+            <strong>${fileName}</strong><br>
+            Generated: ${date}<br>
+            <a href="${fileUrl}" target="_blank">View PDF</a>
+          </li>
+        `;
+      });
+      html += '</ul>';
+    }
+    
+    html += '</body></html>';
+    res.send(html);
+  });
 });
 
 // Add a route to view generated PDFs
