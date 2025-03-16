@@ -2,19 +2,9 @@ services:
   - type: web
     name: jotform-pdf-generator
     env: node
-    buildCommand: chmod +x build.sh && ./build.sh
+    plan: free
+    buildCommand: npm install
     startCommand: node app.js
     envVars:
       - key: PORT
         value: 10000
-      - key: BASE_URL
-        # This will be updated with your actual Render URL
-        value: https://jotform-pdf-generator.onrender.com/webhook
-      - key: ENABLE_EMAIL
-        value: false
-      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
-        value: "true"
-      - key: PUPPETEER_EXECUTABLE_PATH
-        value: "/usr/bin/google-chrome"
-      # Add other environment variables as needed
-
