@@ -1,7 +1,7 @@
 // app.js - Main application file
 const express = require('express');
 const bodyParser = require('body-parser');
-const puppeteer = require('puppeteer');
+const pdf = require('html-pdf');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
@@ -12,7 +12,7 @@ const { generateTemplate } = require('./templateGenerator');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -58,7 +58,7 @@ app.post('/webhook', async (req, res) => {
     // Save PDF to disk
     fs.writeFileSync(filePath, pdfBuffer);
     
-    // Generate public URL (depends on your hosting)
+    // Generate public URL
     const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
     const pdfUrl = `${baseUrl}/uploads/${fileName}`;
     
@@ -87,50 +87,42 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
-// Function to generate PDF using puppeteer
+// Function to generate PDF using html-pdf
 async function generatePDF(data) {
-  console.log('Launching browser for PDF generation');
+  console.log('Generating PDF with html-pdf');
   
-  // Launch headless browser with the bundled Chromium
-  const browser = await puppeteer.launch({
-    headless: "new", // Use the new headless mode
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu'
-    ]
-    // Don't specify executablePath - let Puppeteer use its bundled Chromium
-  });
+  // Generate HTML content from template
+  const htmlContent = generateTemplate(data);
   
-  try {
-    const page = await browser.newPage();
-    
-    // Generate HTML content from template
-    const htmlContent = generateTemplate(data);
-    
-    // Set content to page
-    await page.setContent(htmlContent, {
-      waitUntil: 'networkidle0'
-    });
-    
-    // Generate PDF
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '0.5cm',
-        right: '0.5cm',
-        bottom: '0.5cm',
-        left: '0.5cm'
+  // PDF options
+  const options = {
+    format: 'A4',
+    border: {
+      top: '0.5cm',
+      right: '0.5cm',
+      bottom: '0.5cm',
+      left: '0.5cm'
+    },
+    header: {
+      height: '1cm'
+    },
+    footer: {
+      height: '1cm'
+    },
+    renderDelay: 1000
+  };
+  
+  // Generate PDF
+  return new Promise((resolve, reject) => {
+    pdf.create(htmlContent, options).toBuffer((err, buffer) => {
+      if (err) {
+        console.error('PDF generation error:', err);
+        reject(err);
+      } else {
+        resolve(buffer);
       }
     });
-    
-    return pdfBuffer;
-  } finally {
-    await browser.close();
-    console.log('Browser closed');
-  }
+  });
 }
 
 // Function to send email notification
@@ -201,6 +193,38 @@ function parseJotFormData(webhookData) {
   // If the data is directly sent without wrapper
   return webhookData;
 }
+
+// Clean up old files periodically (optional but recommended for free tier)
+function cleanupOldFiles() {
+  const maxAgeInHours = 24; // Keep files for 24 hours
+  
+  fs.readdir(uploadsDir, (err, files) => {
+    if (err) return console.log('Error reading uploads directory:', err);
+    
+    const now = new Date().getTime();
+    
+    files.forEach(file => {
+      const filePath = path.join(uploadsDir, file);
+      
+      fs.stat(filePath, (err, stats) => {
+        if (err) return console.log(`Error getting stats for file ${file}:`, err);
+        
+        const fileAge = now - stats.mtime.getTime();
+        const maxAge = maxAgeInHours * 60 * 60 * 1000;
+        
+        if (fileAge > maxAge) {
+          fs.unlink(filePath, err => {
+            if (err) return console.log(`Error deleting file ${file}:`, err);
+            console.log(`Deleted old file: ${file}`);
+          });
+        }
+      });
+    });
+  });
+}
+
+// Run cleanup every 12 hours
+setInterval(cleanupOldFiles, 12 * 60 * 60 * 1000);
 
 // Start the server
 app.listen(PORT, () => {
