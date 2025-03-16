@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: jotform-pdf-generator
+    env: node
+    buildCommand: npm install
+    startCommand: node app.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: BASE_URL
+        # This will be updated with your actual Render URL
+        value: https://jotform-pdf-generator.onrender.com
+      - key: ENABLE_EMAIL
+        value: false
+      # Add other environment variables as needed
