@@ -250,9 +250,6 @@ function generateTemplate(data) {
             </div>
         </div>
         
-        <!-- Additional sections for gutter details, structure details, financial details, etc. -->
-        <!-- Include similar conditional rendering for other sections as in the original template -->
-        
         <!-- Structure Details Section -->
         <div style="background-color: #062841 !important; color: white !important; padding: 10px !important; margin-top: 20px !important; border-radius: 5px !important;">
             <h3 style="margin: 0; color: white !important;">Structure Details</h3>
@@ -274,7 +271,20 @@ function generateTemplate(data) {
                     <td>${data['Structures to be worked on >> House >> Windows'] ? '✓' : '—'}</td>
                     <td>${data['Structures to be worked on >> House >> Paint'] ? '✓' : '—'}</td>
                 </tr>
-                <!-- Add similar rows for other structures -->
+                <tr>
+                    <td>Shed</td>
+                    <td>${data['Structures to be worked on >> Shed >> Roof'] ? '✓' : '—'}</td>
+                    <td>${data['Structures to be worked on >> Shed >> Gutters'] ? '✓' : '—'}</td>
+                    <td>${data['Structures to be worked on >> Shed >> Windows'] ? '✓' : '—'}</td>
+                    <td>${data['Structures to be worked on >> Shed >> Paint'] ? '✓' : '—'}</td>
+                </tr>
+                <tr>
+                    <td>Garage</td>
+                    <td>${data['Structures to be worked on >> Garage >> Roof'] ? '✓' : '—'}</td>
+                    <td>${data['Structures to be worked on >> Garage >> Gutters'] ? '✓' : '—'}</td>
+                    <td>${data['Structures to be worked on >> Garage >> Windows'] ? '✓' : '—'}</td>
+                    <td>${data['Structures to be worked on >> Garage >> Paint'] ? '✓' : '—'}</td>
+                </tr>
             </table>
         </div>
         
