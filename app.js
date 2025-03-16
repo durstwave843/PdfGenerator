@@ -165,7 +165,39 @@ async function sendEmailNotification(data, pdfUrl, pdfBuffer, fileName) {
     ]
   });
 }
+// Health check endpoint - Expand this to show a basic status page
+app.get('/', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>PDF Generator Service</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+          h1 { color: #062841; }
+          .status { background: #e6f7e6; border-left: 4px solid #28a745; padding: 10px; }
+        </style>
+      </head>
+      <body>
+        <h1>PDF Generator Service</h1>
+        <div class="status">
+          <p>✅ Service is running</p>
+          <p>Ready to accept webhook data from JotForm</p>
+        </div>
+        <p>Last started: ${new Date().toLocaleString()}</p>
+      </body>
+    </html>
+  `);
+});
 
+// Add a route to view generated PDFs
+app.get('/uploads/:filename', (req, res) => {
+  const filePath = path.join(uploadsDir, req.params.filename);
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.status(404).send('File not found');
+  }
+});
 // Helper function to parse JotForm data
 function parseJotFormData(webhookData) {
   // JotForm webhook sends data with formData object or rawRequest object
