@@ -190,7 +190,7 @@ function generateTemplate(data) {
                 ${new Date().toLocaleDateString()}
             </h1>
             <h2 style="font-size: 25px; color: white; text-align: center; ">Turn in</h2>
-            <h3 style="font-size: 20px; color: white; padding-left: 5px; font-weight: 800; position: relative; top: -40px; padding-left: 20px;">${data['Project Manager'] || 'Project Manager'}</h3>
+            <h3 style="font-size: 20px; color: white; padding-left: 5px; font-weight: 800; position: relative; top: -40px; padding-left: 20px;">${data['projectManager'] || ''}</h3>
             <h4 style="font-size: 12px; color: white; position: relative; top: -60px; padding-left: 20px;">${data['PM Email'] || ''}</h4>
         </div>
         
