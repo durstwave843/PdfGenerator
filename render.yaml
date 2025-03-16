@@ -9,6 +9,6 @@ services:
       - key: PORT
         value: 10000
       - key: BASE_URL
-        value: "https://jotform-pdf-generator.onrender.com"
+        value: "https://jotform-pdf-generator.onrender.com/webhook"
       - key: ENABLE_EMAIL
         value: "false"
