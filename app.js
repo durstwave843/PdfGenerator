@@ -25,11 +25,31 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(uploadsDir));
 
-// Health check endpoint
+// Health check endpoint - Expanded status page
 app.get('/', (req, res) => {
-  res.send('PDF Generator Service is running');
+  res.send(`
+    <html>
+      <head>
+        <title>PDF Generator Service</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+          h1 { color: #062841; }
+          .status { background: #e6f7e6; border-left: 4px solid #28a745; padding: 10px; }
+        </style>
+      </head>
+      <body>
+        <h1>PDF Generator Service</h1>
+        <div class="status">
+          <p>✅ Service is running</p>
+          <p>Ready to accept webhook data from JotForm</p>
+        </div>
+        <p>Last started: ${new Date().toLocaleString()}</p>
+      </body>
+    </html>
+  `);
 });
 
+// Main webhook endpoint for JotForm
 app.post('/webhook', async (req, res) => {
   console.log('Received webhook data');
   
@@ -37,20 +57,6 @@ app.post('/webhook', async (req, res) => {
     // Log raw data
     console.log('Raw webhook data:', JSON.stringify(req.body, null, 2));
     
-    // Extract form data
-    const formData = parseJotFormData(req.body);
-    
-    // Log field names
-    console.log('Available fields:', Object.keys(formData));
-    console.log('Project Manager field value:', formData['projectManager']);
-    
-    // Rest of your code...
-
-// Main webhook endpoint for JotForm
-app.post('/webhook', async (req, res) => {
-  console.log('Received webhook data');
-  
-  try {
     // Extract form data from JotForm webhook payload
     const formData = parseJotFormData(req.body);
     
@@ -58,6 +64,9 @@ app.post('/webhook', async (req, res) => {
       return res.status(400).send('Invalid form data');
     }
     
+    // Log field names and values for debugging
+    console.log('Available fields:', Object.keys(formData));
+    console.log('Project Manager field value:', formData['projectManager']);
     console.log('Processing submission for: ' + (formData['Homeowner Name'] || 'Unknown'));
     
     // Generate PDF
@@ -74,9 +83,9 @@ app.post('/webhook', async (req, res) => {
     // Save PDF to disk
     fs.writeFileSync(filePath, pdfBuffer);
     
-  // Generate public URL - fix the URL construction
-  const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
-  const pdfUrl = `${baseUrl}/uploads/${fileName}`; // Remove any "/webhook" prefix
+    // Generate public URL - with fixed URL construction
+    const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+    const pdfUrl = `${baseUrl}/uploads/${fileName}`;
     
     console.log(`PDF generated and saved at: ${pdfUrl}`);
     
@@ -181,29 +190,6 @@ async function sendEmailNotification(data, pdfUrl, pdfBuffer, fileName) {
     ]
   });
 }
-// Health check endpoint - Expand this to show a basic status page
-app.get('/', (req, res) => {
-  res.send(`
-    <html>
-      <head>
-        <title>PDF Generator Service</title>
-        <style>
-          body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-          h1 { color: #062841; }
-          .status { background: #e6f7e6; border-left: 4px solid #28a745; padding: 10px; }
-        </style>
-      </head>
-      <body>
-        <h1>PDF Generator Service</h1>
-        <div class="status">
-          <p>✅ Service is running</p>
-          <p>Ready to accept webhook data from JotForm</p>
-        </div>
-        <p>Last started: ${new Date().toLocaleString()}</p>
-      </body>
-    </html>
-  `);
-});
 
 // Add a route to list all generated PDFs
 app.get('/pdfs', (req, res) => {
@@ -266,6 +252,7 @@ app.get('/uploads/:filename', (req, res) => {
     res.status(404).send('File not found');
   }
 });
+
 // Helper function to parse JotForm data
 function parseJotFormData(webhookData) {
   // JotForm webhook sends data with formData object or rawRequest object
@@ -288,6 +275,26 @@ function parseJotFormData(webhookData) {
   // If it's already in formData format
   if (webhookData.formData) {
     return webhookData.formData;
+  }
+  
+  // Enhanced parsing for direct webhook data
+  // This handles cases where JotForm sends the data directly
+  if (webhookData.q135_projectManager) {
+    // Convert the data to our expected format
+    let formData = {};
+    for (const key in webhookData) {
+      if (key.startsWith('q') && key.includes('_')) {
+        // Extract the field name from the question key (e.g., q135_projectManager -> projectManager)
+        const cleanKey = key.split('_').slice(1).join('_');
+        formData[cleanKey] = webhookData[key];
+        // Also keep a copy with the original field name for backward compatibility
+        formData[key] = webhookData[key];
+      } else {
+        // Keep other fields as is
+        formData[key] = webhookData[key];
+      }
+    }
+    return formData;
   }
   
   // If the data is directly sent without wrapper
