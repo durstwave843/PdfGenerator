@@ -30,6 +30,22 @@ app.get('/', (req, res) => {
   res.send('PDF Generator Service is running');
 });
 
+app.post('/webhook', async (req, res) => {
+  console.log('Received webhook data');
+  
+  try {
+    // Log raw data
+    console.log('Raw webhook data:', JSON.stringify(req.body, null, 2));
+    
+    // Extract form data
+    const formData = parseJotFormData(req.body);
+    
+    // Log field names
+    console.log('Available fields:', Object.keys(formData));
+    console.log('Project Manager field value:', formData['projectManager']);
+    
+    // Rest of your code...
+
 // Main webhook endpoint for JotForm
 app.post('/webhook', async (req, res) => {
   console.log('Received webhook data');
