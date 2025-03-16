@@ -34,37 +34,69 @@ function generateTemplate(data) {
   // Get various field values with multiple possible field names
   const projectManager = getFieldValue(
     data, 
-    ['projectManager', '{projectManager}', 'q135_projectManager', 'Project Manager', 'PM Name'],
+    [
+      'Project Manager',
+      'projectManager', 
+      'q135_projectManager', 
+      'pmName',
+      'PM Name'
+    ],
     'Project Manager'
   );
   
   const pmEmail = getFieldValue(
     data,
-    ['pmEmail', '{pmEmail}', 'PM Email', 'Project Manager Email'],
+    [
+      'PM Email',
+      'pmEmail', 
+      'q136_pmEmail',
+      'Project Manager Email'
+    ],
     ''
   );
   
   const homeownerName = getFieldValue(
     data,
-    ['Homeowner Name', 'homeownerName', 'homeowner'],
+    [
+      'Homeowner Name',
+      'homeownerName', 
+      'yourName',
+      'fullName',
+      'name'
+    ],
     'Homeowner'
   );
   
   const homeownerPhone = getFieldValue(
     data,
-    ['Homeowner Phone Number', 'homeownerPhoneNumber', 'phone'],
+    [
+      'Homeowner Phone Number',
+      'homeownerPhoneNumber', 
+      'phone',
+      'phoneNumber'
+    ],
     ''
   );
   
   const homeownerEmail = getFieldValue(
     data,
-    ['Homeowner Email (PLEASE INCLUDE THIS)', 'homeownerEmail', 'email'],
+    [
+      'Homeowner Email (PLEASE INCLUDE THIS)',
+      'Homeowner Email',
+      'homeownerEmail', 
+      'email',
+      'yourEmail'
+    ],
     ''
   );
   
   const projectAddress = getFieldValue(
     data,
-    ['Project Address', 'projectAddress', 'address'],
+    [
+      'Project Address',
+      'projectAddress', 
+      'address'
+    ],
     ''
   );
 
@@ -265,40 +297,40 @@ function generateTemplate(data) {
         
         <div class="projectDetails">
             <div class="detailsGrid">
-                ${getFieldValue(data, ['What brand of shingle?', 'brandOfShingle'], '') ? 
+                ${getFieldValue(data, ['What brand of shingle?', 'brandOfShingle', 'q33_whatBrand'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Brand of Shingle:</div>
-                      <div class="detailsValue">${getFieldValue(data, ['What brand of shingle?', 'brandOfShingle'], '')}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['What brand of shingle?', 'brandOfShingle', 'q33_whatBrand'], '')}</div>
                   </div>` : ''}
                 
-                ${getFieldValue(data, ['What type of shingle?', 'typeOfShingle'], '') ? 
+                ${getFieldValue(data, ['What type of shingle?', 'typeOfShingle', 'q34_whatType'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Type of Shingle:</div>
-                      <div class="detailsValue">${getFieldValue(data, ['What type of shingle?', 'typeOfShingle'], '')}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['What type of shingle?', 'typeOfShingle', 'q34_whatType'], '')}</div>
                   </div>` : ''}
                 
-                ${getFieldValue(data, ['What color (must be actual color)', 'shingleColor'], '') ? 
+                ${getFieldValue(data, ['What color (must be actual color)', 'shingleColor', 'q35_whatColor'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Shingle Color:</div>
-                      <div class="detailsValue">${getFieldValue(data, ['What color (must be actual color)', 'shingleColor'], '')}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['What color (must be actual color)', 'shingleColor', 'q35_whatColor'], '')}</div>
                   </div>` : ''}
                 
-                ${getFieldValue(data, ['Drip edge color (circle)', 'dripEdgeColor'], '') ? 
+                ${getFieldValue(data, ['Drip edge color (circle)', 'dripEdgeColor', 'q36_dripEdge'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Drip Edge Color:</div>
-                      <div class="detailsValue">${getFieldValue(data, ['Drip edge color (circle)', 'dripEdgeColor'], '')}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['Drip edge color (circle)', 'dripEdgeColor', 'q36_dripEdge'], '')}</div>
                   </div>` : ''}
                 
-                ${getFieldValue(data, ['Ridge Type (circle)', 'ridgeType'], '') ? 
+                ${getFieldValue(data, ['Ridge Type (circle)', 'ridgeType', 'q37_ridgeType'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Ridge Type:</div>
-                      <div class="detailsValue">${getFieldValue(data, ['Ridge Type (circle)', 'ridgeType'], '')}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['Ridge Type (circle)', 'ridgeType', 'q37_ridgeType'], '')}</div>
                   </div>` : ''}
                 
-                ${getFieldValue(data, ['What roof materials are we replacing?', 'roofMaterials'], '') ? 
+                ${getFieldValue(data, ['What roof materials are we replacing?', 'roofMaterials', 'q38_whatRoof'], '') ? 
                   `<div class="detailsRow">
                       <div class="detailsLabel">Roof Materials to Replace:</div>
-                      <div class="detailsValue">${getFieldValue(data, ['What roof materials are we replacing?', 'roofMaterials'], '')}</div>
+                      <div class="detailsValue">${getFieldValue(data, ['What roof materials are we replacing?', 'roofMaterials', 'q38_whatRoof'], '')}</div>
                   </div>` : ''}
             </div>
         </div>
@@ -319,41 +351,41 @@ function generateTemplate(data) {
                 </tr>
                 <tr>
                     <td>House</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Roof', 'houseRoof'], false) ? '✓' : '—'}</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Gutters', 'houseGutters'], false) ? '✓' : '—'}</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Windows', 'houseWindows'], false) ? '✓' : '—'}</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Paint', 'housePaint'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Roof', 'houseRoof', 'q50_structuresTo[House][Roof]'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Gutters', 'houseGutters', 'q50_structuresTo[House][Gutters]'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Windows', 'houseWindows', 'q50_structuresTo[House][Windows]'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> House >> Paint', 'housePaint', 'q50_structuresTo[House][Paint]'], false) ? '✓' : '—'}</td>
                 </tr>
                 <tr>
                     <td>Shed</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Roof', 'shedRoof'], false) ? '✓' : '—'}</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Gutters', 'shedGutters'], false) ? '✓' : '—'}</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Windows', 'shedWindows'], false) ? '✓' : '—'}</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Paint', 'shedPaint'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Roof', 'shedRoof', 'q50_structuresTo[Shed][Roof]'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Gutters', 'shedGutters', 'q50_structuresTo[Shed][Gutters]'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Windows', 'shedWindows', 'q50_structuresTo[Shed][Windows]'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Shed >> Paint', 'shedPaint', 'q50_structuresTo[Shed][Paint]'], false) ? '✓' : '—'}</td>
                 </tr>
                 <tr>
                     <td>Garage</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Roof', 'garageRoof'], false) ? '✓' : '—'}</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Gutters', 'garageGutters'], false) ? '✓' : '—'}</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Windows', 'garageWindows'], false) ? '✓' : '—'}</td>
-                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Paint', 'garagePaint'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Roof', 'garageRoof', 'q50_structuresTo[Garage][Roof]'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Gutters', 'garageGutters', 'q50_structuresTo[Garage][Gutters]'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Windows', 'garageWindows', 'q50_structuresTo[Garage][Windows]'], false) ? '✓' : '—'}</td>
+                    <td>${getFieldValue(data, ['Structures to be worked on >> Garage >> Paint', 'garagePaint', 'q50_structuresTo[Garage][Paint]'], false) ? '✓' : '—'}</td>
                 </tr>
             </table>
         </div>
         
         <!-- Notes Section -->
-        ${(getFieldValue(data, ['Special instructions/notes/side deals', 'specialInstructions'], '') || 
-           getFieldValue(data, ['Put any other important build notes here', 'buildNotes'], '')) ? 
+        ${(getFieldValue(data, ['Special instructions/notes/side deals', 'specialInstructions', 'q60_specialInstructions'], '') || 
+           getFieldValue(data, ['Put any other important build notes here', 'buildNotes', 'q61_buildNotes'], '')) ? 
           `<div style="background-color: #062841 !important; color: white !important; padding: 10px !important; margin-top: 20px !important; border-radius: 5px !important;">
               <h3 style="margin: 0; color: white !important;">Special Instructions & Notes</h3>
           </div>
           
           <div class="notes">
-              ${getFieldValue(data, ['Special instructions/notes/side deals', 'specialInstructions'], '') ? 
-                `<p><strong>Special Instructions:</strong><br>${getFieldValue(data, ['Special instructions/notes/side deals', 'specialInstructions'], '')}</p>` : ''}
+              ${getFieldValue(data, ['Special instructions/notes/side deals', 'specialInstructions', 'q60_specialInstructions'], '') ? 
+                `<p><strong>Special Instructions:</strong><br>${getFieldValue(data, ['Special instructions/notes/side deals', 'specialInstructions', 'q60_specialInstructions'], '')}</p>` : ''}
               
-              ${getFieldValue(data, ['Put any other important build notes here', 'buildNotes'], '') ? 
-                `<p><strong>Additional Build Notes:</strong><br>${getFieldValue(data, ['Put any other important build notes here', 'buildNotes'], '')}</p>` : ''}
+              ${getFieldValue(data, ['Put any other important build notes here', 'buildNotes', 'q61_buildNotes'], '') ? 
+                `<p><strong>Additional Build Notes:</strong><br>${getFieldValue(data, ['Put any other important build notes here', 'buildNotes', 'q61_buildNotes'], '')}</p>` : ''}
           </div>` : ''}
         
         <!-- Status and Certification -->
@@ -362,9 +394,9 @@ function generateTemplate(data) {
         </div>
         
         <div class="projectDetails">
-            ${getFieldValue(data, ['Status', 'status'], '') ? 
+            ${getFieldValue(data, ['Status', 'status', 'q70_status'], '') ? 
               `<div style="margin-bottom: 15px;">
-                  <strong>Current Status:</strong> ${getFieldValue(data, ['Status', 'status'], '')}
+                  <strong>Current Status:</strong> ${getFieldValue(data, ['Status', 'status', 'q70_status'], '')}
               </div>` : ''}
         </div>
         
