@@ -8,3 +8,7 @@ services:
     envVars:
       - key: PORT
         value: 10000
+      - key: BASE_URL
+        value: "https://jotform-pdf-generator.onrender.com"
+      - key: ENABLE_EMAIL
+        value: "false"
