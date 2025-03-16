@@ -91,16 +91,16 @@ app.post('/webhook', async (req, res) => {
 async function generatePDF(data) {
   console.log('Launching browser for PDF generation');
   
-  // Launch headless browser with the installed Chrome
+  // Launch headless browser with the bundled Chromium
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: "new", // Use the new headless mode
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-gpu'
-    ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null
+    ]
+    // Don't specify executablePath - let Puppeteer use its bundled Chromium
   });
   
   try {
