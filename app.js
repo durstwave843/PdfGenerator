@@ -89,13 +89,37 @@ app.post('/webhook', async (req, res) => {
 });
 
 // Function to generate PDF using puppeteer
+// In your generatePDF function
 async function generatePDF(data) {
   console.log('Launching browser for PDF generation');
   
-  // Launch headless browser
+  // Launch headless browser with the installed Chrome
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu'
+    ],
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null
+  });
+  
+  try {
+    // Rest of your function remains the same...
+
+async function generatePDF(data) {
+  console.log('Launching browser for PDF generation');
+  
+const browser = await puppeteer.launch({
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu'
+    ],
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null
   });
   
   try {
