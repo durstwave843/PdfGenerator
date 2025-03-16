@@ -20,7 +20,7 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Middleware
+// Middleware - IMPORTANT: Use urlencoded for JotForm webhooks
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(uploadsDir));
@@ -54,54 +54,46 @@ app.post('/webhook', async (req, res) => {
   console.log('Received webhook data');
   
   try {
-    // Log raw data - complete request body
-    console.log('Complete request body:', JSON.stringify(req.body, null, 2));
+    // Log all request data for debugging
+    console.log('Request method:', req.method);
+    console.log('Request headers:', req.headers);
+    console.log('Request body:', req.body);
+    console.log('Request query:', req.query);
+    console.log('Request params:', req.params);
     
-    // Check for JotForm specific fields (submissionID and rawRequest)
-    if (req.body.submissionID) {
-      console.log('JotForm submission ID:', req.body.submissionID);
-    }
+    // Get the submissionID and rawRequest from the POST data
+    // JotForm sends data as POST parameters, which Express puts in req.body
+    const submissionID = req.body.submissionID || '';
+    const rawRequestStr = req.body.rawRequest || '{}';
     
-    // Get the rawRequest data - this is how JotForm sends the form fields
+    console.log('Submission ID:', submissionID);
+    console.log('Raw request string:', rawRequestStr);
+    
+    // Parse the rawRequest JSON string to get the form data
     let formData = {};
-    
-    if (req.body.rawRequest) {
-      console.log('Raw request found, parsing JSON');
-      
-      // If rawRequest is a string (JSON), parse it
-      if (typeof req.body.rawRequest === 'string') {
-        try {
-          formData = JSON.parse(req.body.rawRequest);
-          console.log('Successfully parsed rawRequest JSON');
-        } catch (error) {
-          console.error('Error parsing rawRequest JSON:', error);
-          formData = req.body.rawRequest; // Use as is if not valid JSON
-        }
-      } else {
-        // If rawRequest is already an object
-        formData = req.body.rawRequest;
-      }
-    } else {
-      // Fall back to the entire request body if no rawRequest is found
-      formData = req.body;
+    try {
+      formData = JSON.parse(rawRequestStr);
+      console.log('Successfully parsed form data:', formData);
+    } catch (error) {
+      console.error('Error parsing form data JSON:', error);
+      // If parsing fails, try to use the rawRequest as is
+      formData = rawRequestStr;
     }
     
-    console.log('Parsed form data:', JSON.stringify(formData, null, 2));
+    // Log all form field names for debugging
+    console.log('Available form fields:', Object.keys(formData));
     
-    // Log all available field names for debugging
-    console.log('Available fields:', Object.keys(formData));
-    
-    // Extract field values using cleaner names for the PDF
-    const cleanData = extractFormFields(formData);
-    console.log('Cleaned form data:', JSON.stringify(cleanData, null, 2));
+    // Extract field values for PDF generation
+    const extractedData = extractFormFields(formData);
+    console.log('Extracted data for PDF:', extractedData);
     
     // Generate PDF
-    const pdfBuffer = await generatePDF(cleanData);
+    const pdfBuffer = await generatePDF(extractedData);
     
     // Create filename
     const timestamp = new Date().getTime();
-    const homeownerName = cleanData['Homeowner Name'] ? 
-      cleanData['Homeowner Name'].replace(/[^a-zA-Z0-9]/g, '') : 
+    const homeownerName = extractedData['Homeowner Name'] ? 
+      extractedData['Homeowner Name'].replace(/[^a-zA-Z0-9]/g, '') : 
       'TurnIn';
     const fileName = `Gates_TurnIn_${homeownerName}_${timestamp}.pdf`;
     const filePath = path.join(uploadsDir, fileName);
@@ -111,94 +103,91 @@ app.post('/webhook', async (req, res) => {
     
     // Generate public URL - with fixed URL construction
     const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+    // Make sure we're not including 'webhook' in the path
     const pdfUrl = `${baseUrl}/uploads/${fileName}`;
     
     console.log(`PDF generated and saved at: ${pdfUrl}`);
     
     // Send email notification if configured
-    if (process.env.ENABLE_EMAIL === 'true' && cleanData['Homeowner Email']) {
-      await sendEmailNotification(cleanData, pdfUrl, pdfBuffer, fileName);
+    if (process.env.ENABLE_EMAIL === 'true' && extractedData['Homeowner Email']) {
+      await sendEmailNotification(extractedData, pdfUrl, pdfBuffer, fileName);
       console.log('Email notification sent');
     }
     
     // Return success
-    res.status(200).json({
-      success: true,
-      message: 'PDF generated successfully',
-      pdfUrl: pdfUrl
-    });
+    res.status(200).send("PDF generated successfully");
     
   } catch (error) {
     console.error('Error processing webhook:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error generating PDF',
-      error: error.message
-    });
+    res.status(500).send('Error generating PDF: ' + error.message);
   }
 });
 
-// Function to extract field values from JotForm's complex structure
+// Function to extract field values from JotForm's field format
 function extractFormFields(formData) {
-  const cleanData = {};
+  const extractedData = {};
   
-  // Loop through all fields
+  // Go through all form fields
   for (const key in formData) {
-    // Check if field is a JotForm field (usually starts with q followed by numbers)
-    if (key.match(/^q\d+/)) {
-      const fieldValue = formData[key];
-      
-      // Get a cleaner field name by removing the q123_ prefix
-      let cleanFieldName = key.replace(/^q\d+_/, '');
-      
-      // Handle complex nested fields
-      if (typeof fieldValue === 'object' && fieldValue !== null) {
-        // If field contains first/last name structure
-        if (fieldValue.first || fieldValue.last) {
-          cleanData[cleanFieldName + ' First'] = fieldValue.first || '';
-          cleanData[cleanFieldName + ' Last'] = fieldValue.last || '';
-          cleanData[cleanFieldName] = (fieldValue.first || '') + ' ' + (fieldValue.last || '');
-        } else {
-          // For other object types, add individual properties
-          for (const subKey in fieldValue) {
-            cleanData[cleanFieldName + ' ' + subKey] = fieldValue[subKey];
-          }
-          // Also add the entire object as is
-          cleanData[cleanFieldName] = fieldValue;
-        }
+    const value = formData[key];
+    
+    // Handle name fields which have first/last as objects
+    if (key.includes('_yourName') || key.includes('_name') || key.includes('_fullName')) {
+      if (value && typeof value === 'object' && (value.first || value.last)) {
+        const fullName = `${value.first || ''} ${value.last || ''}`.trim();
+        extractedData['Homeowner Name'] = fullName;
+        extractedData['Homeowner First Name'] = value.first || '';
+        extractedData['Homeowner Last Name'] = value.last || '';
       } else {
-        // Simple field - just add it with the cleaner name
-        cleanData[cleanFieldName] = fieldValue;
+        extractedData['Homeowner Name'] = value || '';
       }
-      
-      // Also store under original key for compatibility
-      cleanData[key] = fieldValue;
-    } else {
-      // For non-question fields like formID, keep them as is
-      cleanData[key] = formData[key];
+    }
+    // Handle email fields
+    else if (key.includes('_email') || key.includes('_yourEmail')) {
+      extractedData['Homeowner Email'] = value || '';
+      extractedData['Homeowner Email (PLEASE INCLUDE THIS)'] = value || '';
+    }
+    // Handle phone number fields
+    else if (key.includes('_phone') || key.includes('_phoneNumber')) {
+      extractedData['Homeowner Phone Number'] = value || '';
+    }
+    // Handle address fields
+    else if (key.includes('_address') || key.includes('_projectAddress')) {
+      if (value && typeof value === 'object') {
+        // Handle JotForm address fields which can be complex objects
+        const addressParts = [];
+        if (value.addr_line1) addressParts.push(value.addr_line1);
+        if (value.addr_line2) addressParts.push(value.addr_line2);
+        if (value.city) addressParts.push(value.city);
+        if (value.state) addressParts.push(value.state);
+        if (value.postal) addressParts.push(value.postal);
+        
+        extractedData['Project Address'] = addressParts.join(', ');
+      } else {
+        extractedData['Project Address'] = value || '';
+      }
+    }
+    // Handle project manager fields
+    else if (key.includes('_projectManager') || key.includes('_pmName')) {
+      extractedData['Project Manager'] = value || '';
+      extractedData['projectManager'] = value || '';
+    }
+    // Handle PM email fields
+    else if (key.includes('_pmEmail')) {
+      extractedData['PM Email'] = value || '';
+    }
+    
+    // Save field with original name as well
+    extractedData[key] = value;
+    
+    // Save field with cleaner name (without q123_ prefix)
+    const cleanKey = key.replace(/^q\d+_/, '');
+    if (cleanKey !== key) {
+      extractedData[cleanKey] = value;
     }
   }
   
-  // Map common field names to standardized names for the PDF template
-  // Adjust these mappings based on your actual form field names
-  const fieldMappings = {
-    'projectManager': 'Project Manager',
-    'yourName': 'Homeowner Name',
-    'homeownerPhoneNumber': 'Homeowner Phone Number',
-    'yourEmail': 'Homeowner Email',
-    'email': 'Homeowner Email',
-    'projectAddress': 'Project Address',
-    'address': 'Project Address'
-  };
-  
-  // Apply mappings
-  for (const originalName in fieldMappings) {
-    if (cleanData[originalName] !== undefined) {
-      cleanData[fieldMappings[originalName]] = cleanData[originalName];
-    }
-  }
-  
-  return cleanData;
+  return extractedData;
 }
 
 // Function to generate PDF using html-pdf
